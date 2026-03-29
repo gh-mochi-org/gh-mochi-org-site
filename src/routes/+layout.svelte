@@ -8,7 +8,6 @@
   import Navbar from "$lib/components/mochi/Navbar.svelte";
   import MochiDock from "$lib/components/mochi/MochiDock.svelte";
   import Footer from "$lib/components/mochi/Footer.svelte";
-  import ostmusic from "$lib/assets/rainy sounds mochi.mp3";
 
   let { children } = $props();
 </script>
@@ -19,18 +18,16 @@
 </svelte:head>
 
 <ModeWatcher />
+
 <div
   class="min-h-screen flex flex-col relative overflow-hidden transition-colors duration-300"
 >
-  <audio src={ostmusic} autoplay loop class="hidden"></audio>
-
   <div class="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
-    <LightRays />
-    <Meteors number={60} />
+    <LightRays count={4} />
+    <Meteors number={20} />
   </div>
 
   <ScrollProgress class="top-18 z-100" />
-
   <Navbar />
 
   <main class="flex-1 pt-20 pb-32">
