@@ -21,8 +21,8 @@
   let saving = $state(false);
   let saveError = $state("");
 
-  const SPONSOR_PAYLINK = "69c8d9f659012967536797d9";
-  const SUPPORTER_PAYLINK = "69c8d9619153c496cc83f6a0";
+  const SPONSOR_PAYLINK = "69d0ba1394194dc68fa68f23";
+  const SUPPORTER_PAYLINK = "69d0b98dabbfb8e8a23c7252";
 
   const amounts = ["2", "5", "10", "20", "50"];
 
@@ -63,51 +63,98 @@
   let checkoutMounted = $state(false);
   let checkoutError = $state("");
 
+  // Inject the Helio script dynamically (the correct way per docs).
+  // We create a <script> tag, append it to <head>, and only call
+  // helioCheckout() inside script.onload — no race conditions.
+  function mountHelioWidget(el: HTMLElement) {
+    const paylinkId =
+      activeTab === "sponsor" ? SPONSOR_PAYLINK : SUPPORTER_PAYLINK;
+
+    const existingScript = document.getElementById("helio-embed-script");
+    if (existingScript) {
+      // Script already loaded, call widget directly
+      initWidget(el, paylinkId);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.id = "helio-embed-script";
+    script.type = "module";
+    script.crossOrigin = "anonymous";
+    script.src = "https://embed.hel.io/assets/index-v1.js";
+
+    script.onload = () => {
+      initWidget(el, paylinkId);
+    };
+
+    script.onerror = () => {
+      checkoutError = "Failed to load payment widget. Please refresh.";
+      checkoutMounted = false;
+    };
+
+    document.head.appendChild(script);
+  }
+
+  function initWidget(el: HTMLElement, paylinkId: string) {
+    if (typeof (window as any).helioCheckout !== "function") {
+      checkoutError = "Payment widget unavailable. Please refresh.";
+      checkoutMounted = false;
+      return;
+    }
+
+    (window as any).helioCheckout(el, {
+      paylinkId,
+      theme: { themeMode: "dark" },
+      primaryColor: "#F5A623",
+      neutralColor: "#5A6578",
+      amount,
+      display: "inline",
+      network: "main",
+      autofillConfig: {
+        fullName: name,
+        ...(email ? { email } : {}),
+      },
+      additionalJSON: {
+        supporterName: name,
+        supporterEmail: email || null,
+        type: activeTab,
+      },
+      onSuccess: handleSuccess,
+      onError: (e: unknown) => {
+        console.error("Helio error", e);
+        checkoutError = "Payment failed. Please try again.";
+      },
+      onPending: (e: unknown) => console.log("Helio pending", e),
+      onCancel: () => {
+        step = "form";
+        checkoutMounted = false;
+      },
+      onStartPayment: () => console.log("Helio starting payment"),
+    });
+  }
+
   $effect(() => {
     if (step === "checkout" && !checkoutMounted) {
       checkoutMounted = true;
       checkoutError = "";
 
+      // Wait one tick for the DOM element to be present
       setTimeout(() => {
         const el = document.getElementById("helioCheckoutContainer");
         if (!el) {
           checkoutError = "Checkout container not ready. Please try again.";
+          checkoutMounted = false;
           return;
         }
-        if (typeof (window as any).helioCheckout !== "function") {
-          checkoutError = "Payment widget not loaded. Please refresh.";
-          return;
-        }
-
-        const paylinkId = activeTab === "sponsor" ? SPONSOR_PAYLINK : SUPPORTER_PAYLINK;
-
-        (window as any).helioCheckout(el, {
-          paylinkId,
-          theme: { themeMode: "dark" },
-          primaryColor: "#F5A623",
-          neutralColor: "#5A6578",
-          amount,
-          display: "inline",
-          network: "test",
-          onSuccess: handleSuccess,
-          onError: (e: unknown) => {
-            console.error("Helio error", e);
-            checkoutError = "Payment failed. Please try again.";
-          },
-          onPending: (e: unknown) => console.log("Helio pending", e),
-          onCancel: () => {
-            step = "form";
-            checkoutMounted = false;
-          },
-          onStartPayment: () => console.log("Helio starting payment"),
-        });
-      }, 100);
+        mountHelioWidget(el);
+      }, 50);
     }
   });
 
   function goBack() {
     step = "form";
     checkoutMounted = false;
+    checkoutError = "";
   }
 
   function setTab(t: Tab) {
@@ -115,6 +162,7 @@
     step = "form";
     checkoutMounted = false;
     saveError = "";
+    checkoutError = "";
   }
 </script>
 
@@ -124,7 +172,6 @@
     name="description"
     content="Support gh-mochi-org's open-source mission."
   />
-  <script type="module" crossorigin src="https://embed.hel.io/assets/index-v1.js"></script>
 </svelte:head>
 
 <main class="w-full items-center flex flex-col p-3">
@@ -176,7 +223,9 @@
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <MagicCard class="p-6 rounded-2xl border border-border/50 bg-pink-50/40 dark:bg-transparent [&>div.bg-background]:bg-pink-50/40 dark:[&>div.bg-background]:bg-background">
+        <MagicCard
+          class="p-6 rounded-2xl border border-border/50 bg-pink-50/40 dark:bg-transparent [&>div.bg-background]:bg-pink-50/40 dark:[&>div.bg-background]:bg-background"
+        >
           <div class="flex items-center gap-3 mb-4">
             <button
               onclick={goBack}
@@ -207,7 +256,9 @@
           {:else if checkoutError}
             <div class="py-8 text-center">
               <p class="text-destructive text-sm mb-3">{checkoutError}</p>
-              <Button onclick={goBack} variant="outline" size="sm">Go Back</Button>
+              <Button onclick={goBack} variant="outline" size="sm"
+                >Go Back</Button
+              >
             </div>
           {:else}
             <div id="helioCheckoutContainer" class="min-h-[400px]"></div>
@@ -219,7 +270,9 @@
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <MagicCard class="p-6 sm:p-8 rounded-2xl border border-border/50 bg-pink-50/40 dark:bg-transparent [&>div.bg-background]:bg-pink-50/40 dark:[&>div.bg-background]:bg-background">
+        <MagicCard
+          class="p-6 sm:p-8 rounded-2xl border border-border/50 bg-pink-50/40 dark:bg-transparent [&>div.bg-background]:bg-pink-50/40 dark:[&>div.bg-background]:bg-background"
+        >
           {#if activeTab === "supporter"}
             <div class="mb-6">
               <h2 class="text-xl font-bold mb-1">One-Time Contribution</h2>
@@ -270,7 +323,9 @@
             </div>
 
             <div>
-              <label class="text-sm font-medium mb-2 block">Amount (USD)</label>
+              <label for="support-amount" class="text-sm font-medium mb-2 block"
+                >Amount (USD)</label
+              >
               <div class="flex flex-wrap gap-2 mb-2">
                 {#each amounts as a}
                   <button
@@ -287,6 +342,7 @@
               <div class="flex items-center gap-2">
                 <span class="text-sm text-muted-foreground">$</span>
                 <input
+                  id="support-amount"
                   type="number"
                   bind:value={amount}
                   min="1"
@@ -327,7 +383,9 @@
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 + i * 0.07 }}
           >
-            <MagicCard class="p-4 rounded-xl border border-border/50 bg-pink-50/40 dark:bg-transparent [&>div.bg-background]:bg-pink-50/40 dark:[&>div.bg-background]:bg-background">
+            <MagicCard
+              class="p-4 rounded-xl border border-border/50 bg-pink-50/40 dark:bg-transparent [&>div.bg-background]:bg-pink-50/40 dark:[&>div.bg-background]:bg-background"
+            >
               <p class="font-semibold text-sm mb-1">{perk.title}</p>
               <p class="text-xs text-muted-foreground">{perk.desc}</p>
             </MagicCard>
