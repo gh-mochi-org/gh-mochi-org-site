@@ -615,7 +615,7 @@
                 </div>
                 <div class="flex gap-2 justify-center">
                   <Button
-                    href="https://matrix.to/#/@idotconfig:matrix.org"
+                    href="https://matrix.to/#/@git.mochi:matrix.org"
                     target="_blank"
                     variant="outline"
                     size="sm"
@@ -625,7 +625,7 @@
                     Matrix
                   </Button>
                   <Button
-                    href="https://discord.com/users/idotconfig"
+                    href="https://discord.gg/kzTxnARC6b"
                     target="_blank"
                     variant="outline"
                     size="sm"
