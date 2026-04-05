@@ -5,6 +5,7 @@ declare global {
 		// interface Error {}
 		interface Locals {
 			admin: boolean;
+			csrfToken: string;
 		}
 		// interface PageData {}
 		// interface PageState {}

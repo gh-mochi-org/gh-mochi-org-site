@@ -12,8 +12,12 @@ export async function sendDiscordNotification(content: string, embeds?: object[]
       webhookUrl = env.DISCORD_GH_MOCHI_NEW_PROJECT_ANNOUNCEMENT_CHANNEL_WEBHOOK || webhookUrl;
     }
 
-    if (!webhookUrl) return;
-    await fetch(webhookUrl, {
+    if (!webhookUrl) {
+      console.warn(`[Discord] No webhook URL configured for type: ${type}`);
+      return;
+    }
+
+    const response = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -21,7 +25,16 @@ export async function sendDiscordNotification(content: string, embeds?: object[]
         ...(embeds ? { embeds } : {}),
       }),
     });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.warn(`[Discord] Webhook failed with status ${response.status} for type ${type}: ${text}`);
+      return; // Don't throw - just warn and continue
+    }
+
+    console.log(`[Discord] Notification sent (type: ${type})`);
   } catch (err) {
-    console.warn("Discord webhook failed:", err);
+    console.warn(`[Discord] Error sending webhook:`, err);
+    // Don't throw - just warn so it doesn't crash the server
   }
 }

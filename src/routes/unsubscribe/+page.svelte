@@ -1,153 +1,127 @@
 <script lang="ts">
-  import { page } from "$app/stores";
   import { motion } from "motion-sv";
   import AuroraText from "$lib/components/magic/aurora-text/aurora-text.svelte";
   import MagicCard from "$lib/components/magic/magic-card/magic-card.svelte";
-  import RippleButton from "$lib/components/magic/ripple-button/ripple-button.svelte";
-  import { Mail, CheckCircle, XCircle, Loader } from "@lucide/svelte";
+  import Button from "$lib/components/ui/button/button.svelte";
+  import { Tabs, TabsList, TabsTrigger, TabsContent } from "$lib/components/ui/tabs";
+  import { Mail, HeartHandshake, CheckCircle, Loader } from "@lucide/svelte";
+  import { toast } from "svelte-sonner";
 
-  let email = $state($page.url.searchParams.get("email") ?? "");
-  let subscriptionType: "sponsor" | "supporter" | "" = $state("");
-  let status: "idle" | "loading" | "success" | "error" = $state("idle");
-  let message = $state("");
+  let email = $state("");
+  let newsletterStatus: "idle" | "loading" = $state("idle");
+  let supporterStatus: "idle" | "loading" = $state("idle");
+  let successType: "newsletter" | "supporter" | null = $state(null);
 
-  async function unsubscribe() {
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      status = "error";
-      message = "Please enter a valid email address.";
-      return;
-    }
-
-    status = "loading";
+  async function unsubscribeNewsletter() {
+    if (!email || newsletterStatus === "loading") return;
+    newsletterStatus = "loading";
     try {
       const res = await fetch("/api/unsubscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, subscriptionType: subscriptionType || undefined }),
+        body: JSON.stringify({ email }),
       });
       const data = await res.json();
       if (res.ok) {
-        status = "success";
-        message = data.message ?? "You've been unsubscribed.";
+        toast.success("Unsubscribed from newsletter", { description: data.message });
+        successType = "newsletter";
       } else {
-        status = "error";
-        message = data.error ?? "Something went wrong.";
+        toast.error(data.error ?? "Something went wrong.");
       }
     } catch {
-      status = "error";
-      message = "Network error. Try again.";
+      toast.error("Network error. Try again.");
     }
+    newsletterStatus = "idle";
+  }
+
+  async function unsubscribeSupporter() {
+    if (!email || supporterStatus === "loading") return;
+    supporterStatus = "loading";
+    try {
+      const res = await fetch("/api/unsubscribe-supporter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Hidden from supporter list", { description: data.message });
+        successType = "supporter";
+      } else {
+        toast.error(data.error ?? "Something went wrong.");
+      }
+    } catch {
+      toast.error("Network error. Try again.");
+    }
+    supporterStatus = "idle";
   }
 </script>
 
 <svelte:head>
   <title>Unsubscribe - gh-mochi-org</title>
-  <meta
-    name="description"
-    content="Unsubscribe from gh-mochi-org newsletter updates."
-  />
+  <meta name="description" content="Unsubscribe from gh-mochi-org newsletter updates or hide yourself from the supporter list." />
 </svelte:head>
 
 <main class="w-full items-center flex flex-col p-3">
-  <section class="max-w-lg mx-auto px-4 sm:px-8 py-12 text-center w-full">
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      {#if status === "success"}
-        <CheckCircle class="w-16 h-16 text-green-500 mx-auto mb-4" />
-        <h1 class="text-3xl sm:text-4xl font-bold mb-4">
-          <AuroraText>Unsubscribed!</AuroraText>
-        </h1>
-        <p class="text-muted-foreground max-w-md mx-auto leading-relaxed mb-6">
-          {message}
-        </p>
-        <p class="text-sm text-muted-foreground">
-          Sorry to see you go. You can always resubscribe later.
-        </p>
-      {:else}
-        <Mail class="w-12 h-12 text-primary mx-auto mb-4" />
-        <h1 class="text-3xl sm:text-4xl font-bold mb-4">
-          <AuroraText>Unsubscribe</AuroraText>
-        </h1>
-        <p class="text-muted-foreground max-w-md mx-auto leading-relaxed mb-6">
-          Enter your email to unsubscribe from gh-mochi-org updates. No hard feelings.
-        </p>
-
-        <MagicCard class="p-6 sm:p-8 rounded-2xl border border-border/50 bg-pink-50/40 dark:bg-transparent [&>div.bg-background]:bg-pink-50/40 dark:[&>div.bg-background]:bg-background">
-          {#if status === "error"}
-            <div class="flex items-center gap-2 text-destructive text-sm mb-4 p-3 bg-destructive/10 rounded-lg">
-              <XCircle class="w-4 h-4" />
-              {message}
-            </div>
-          {/if}
-
-          <div class="space-y-4">
-            <div>
-              <label
-                for="unsubscribe-email"
-                class="text-sm font-medium mb-1.5 block"
-              >
-                Email Address <span class="text-destructive">*</span>
-              </label>
-              <input
-                id="unsubscribe-email"
-                type="email"
-                bind:value={email}
-                placeholder="your@email.com"
-                onkeydown={(e) => e.key === "Enter" && unsubscribe()}
-                class="w-full rounded-lg border border-border bg-input/30 px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50"
-              />
-              <p class="text-[11px] text-muted-foreground mt-1">
-                We'll remove this email from our newsletter list.
-              </p>
-            </div>
-
-            <div>
-              <label class="text-sm font-medium mb-2 block">Subscription Type (optional)</label>
-              <div class="flex gap-2">
-                <button
-                  onclick={() => (subscriptionType = "supporter")}
-                  class="flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition-all
-                    {subscriptionType === 'supporter'
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-border bg-muted/30 text-muted-foreground hover:border-primary/50'}"
-                >
-                  One-Time Support
-                </button>
-                <button
-                  onclick={() => (subscriptionType = "sponsor")}
-                  class="flex-1 rounded-lg border px-4 py-2 text-sm font-medium transition-all
-                    {subscriptionType === 'sponsor'
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-border bg-muted/30 text-muted-foreground hover:border-primary/50'}"
-                >
-                  Sponsor (6mo)
-                </button>
-              </div>
-              <p class="text-[11px] text-muted-foreground mt-1">
-                Select if you're cancelling a subscription.
-              </p>
-            </div>
-
-            <RippleButton
-              onclick={unsubscribe}
-              disabled={status === "loading"}
-              class="w-full py-3 text-sm font-medium"
-              rippleColor="#ff8906"
-            >
-              {status === "loading"
-                ? "Unsubscribing..."
-                : "Unsubscribe"}
-            </RippleButton>
-          </div>
+  <section class="max-w-md mx-auto px-4 sm:px-8 py-24 text-center w-full">
+    {#if successType}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        <MagicCard class="p-10 rounded-2xl border border-border/50">
+          <CheckCircle class="w-12 h-12 text-green-500 mx-auto mb-4" />
+          <h1 class="text-2xl font-bold mb-3">
+            <AuroraText>{#if successType === "newsletter"}Unsubscribed!{:else}Hidden!{/if}</AuroraText>
+          </h1>
+          <p class="text-sm text-muted-foreground mb-6 leading-relaxed">
+            {#if successType === "newsletter"}
+              You've been removed from the newsletter list.
+            {:else}
+              Your name has been hidden from the supporter list.
+            {/if}
+            No hard feelings — we understand. 💜
+          </p>
+          <Button href="/" variant="outline" class="gap-2">Back to Home</Button>
         </MagicCard>
+      </motion.div>
+    {:else}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        <MagicCard class="p-8 rounded-2xl border border-border/50">
+          <Mail class="w-10 h-10 text-primary mx-auto mb-4" />
+          <h1 class="text-2xl font-bold mb-2"><AuroraText>Unsubscribe</AuroraText></h1>
+          <p class="text-sm text-muted-foreground mb-6 leading-relaxed">Choose what you'd like to unsubscribe from. No hard feelings — we understand.</p>
 
-        <p class="text-xs text-muted-foreground mt-6">
-          <a href="/" class="hover:text-primary transition-colors">Back to home</a>
-        </p>
-      {/if}
-    </motion.div>
+          <Tabs value="newsletter" class="text-left">
+            <TabsList class="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="newsletter" class="gap-1.5"><Mail class="w-3.5 h-3.5" />Newsletter</TabsTrigger>
+              <TabsTrigger value="supporter" class="gap-1.5"><HeartHandshake class="w-3.5 h-3.5" />Supporter</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="newsletter">
+              <div class="space-y-4">
+                <div>
+                  <label for="newsletter-email" class="block text-xs font-medium text-foreground mb-1.5">Email address</label>
+                  <input id="newsletter-email" type="email" bind:value={email} placeholder="you@example.com" onkeydown={(e) => e.key === "Enter" && unsubscribeNewsletter()} class="w-full rounded-lg border border-border bg-input/30 px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                </div>
+                <Button onclick={unsubscribeNewsletter} disabled={newsletterStatus === "loading" || !email} class="w-full gap-2">
+                  {#if newsletterStatus === "loading"}<Loader class="w-4 h-4 animate-spin" /> Unsubscribing...{:else}Unsubscribe from Newsletter{/if}
+                </Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="supporter">
+              <div class="space-y-4">
+                <div>
+                  <label for="supporter-email" class="block text-xs font-medium text-foreground mb-1.5">Email address</label>
+                  <input id="supporter-email" type="email" bind:value={email} placeholder="you@example.com" onkeydown={(e) => e.key === "Enter" && unsubscribeSupporter()} class="w-full rounded-lg border border-border bg-input/30 px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                </div>
+                <p class="text-[11px] text-muted-foreground">This will hide your name from the supporter list on the contributors page. If you supported with a different email, try that one instead.</p>
+                <Button onclick={unsubscribeSupporter} disabled={supporterStatus === "loading" || !email} class="w-full gap-2">
+                  {#if supporterStatus === "loading"}<Loader class="w-4 h-4 animate-spin" /> Hiding...{:else}Hide from Supporter List{/if}
+                </Button>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </MagicCard>
+      </motion.div>
+    {/if}
   </section>
 </main>

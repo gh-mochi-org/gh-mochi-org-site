@@ -20,6 +20,7 @@
     HeartHandshake,
     Layers,
     Mail,
+    MessageSquare,
     Newspaper,
     Package,
     Puzzle,
@@ -72,6 +73,8 @@
   const idotconfig_data = {
     name: "~/.config",
     github: "idotconfig",
+    matrix: "@idotconfig:matrix.org",
+    discord: "idotconfig",
     bio: "Creator of gh-mochi-org. Building tools that are cozy, robust, and open-source. Always up for a chat about tech, open source, or the best mochi flavors.",
     avatar: idotconfig,
   };
@@ -220,7 +223,6 @@
       transition={{ type: "spring", stiffness: 100, damping: 10 }}
       class="relative mb-8"
     >
-      
       <div
         class="absolute inset-0 bg-gray-500/40 rounded-full blur-3xl opacity-50"
       ></div>
@@ -455,8 +457,8 @@
 
   <section class="py-12 border-y border-border/40 overflow-hidden">
     <h2
-          class="text-center text-md text-muted-foreground w-full max-w-2xl mx-auto mb-8 px-4 text-balance"
->
+      class="text-center text-md text-muted-foreground w-full max-w-2xl mx-auto mb-8 px-4 text-balance"
+    >
       <AuroraText>Wanna make something new?</AuroraText>
     </h2>
     <p
@@ -588,27 +590,51 @@
               <p class="text-xs text-muted-foreground leading-relaxed mb-6">
                 Creator & Maintainer of gh-mochi-org.
               </p>
-              <div class="flex gap-2 justify-center">
-                <Button
-                  href="https://github.com/idotconfig"
-                  target="_blank"
-                  variant="outline"
-                  size="sm"
-                  class="flex-1 gap-1.5"
-                >
-                  <Github class="w-3 h-3" />
-                  GitHub
-                </Button>
-                <Button
-                  href="https://x.com/idotconfig"
-                  target="_blank"
-                  variant="outline"
-                  size="sm"
-                  class="flex-1 gap-1.5"
-                >
-                  <Cpu class="w-3 h-3" />
-                  X
-                </Button>
+              <div class="flex flex-col gap-2 justify-center">
+                <div class="flex gap-2 justify-center">
+                  <Button
+                    href="https://github.com/idotconfig"
+                    target="_blank"
+                    variant="outline"
+                    size="sm"
+                    class="flex-1 gap-1.5"
+                  >
+                    <Github class="w-3 h-3" />
+                    GitHub
+                  </Button>
+                  <Button
+                    href="https://x.com/idotconfig"
+                    target="_blank"
+                    variant="outline"
+                    size="sm"
+                    class="flex-1 gap-1.5"
+                  >
+                    <Cpu class="w-3 h-3" />
+                    X
+                  </Button>
+                </div>
+                <div class="flex gap-2 justify-center">
+                  <Button
+                    href="https://matrix.to/#/@idotconfig:matrix.org"
+                    target="_blank"
+                    variant="outline"
+                    size="sm"
+                    class="flex-1 gap-1.5"
+                  >
+                    <MessageSquare class="w-3 h-3" />
+                    Matrix
+                  </Button>
+                  <Button
+                    href="https://discord.com/users/idotconfig"
+                    target="_blank"
+                    variant="outline"
+                    size="sm"
+                    class="flex-1 gap-1.5"
+                  >
+                    <MessageSquare class="w-3 h-3" />
+                    Discord
+                  </Button>
+                </div>
               </div>
             </div>
           </MagicCard>
@@ -642,7 +668,9 @@
                   What I Do
                 </h4>
                 <p class="text-sm text-muted-foreground leading-relaxed">
-                  I use Arch Btw
+                  I use nvim in my Arch Linux to write Rust code to run on my i5
+                  2400 intel machine and make source available to the world (yes
+                  I don't have GPU and I should upgrade and I need your help!!)
                 </p>
               </div>
 
@@ -652,7 +680,13 @@
                   Outside of Code
                 </h4>
                 <div class="flex flex-wrap gap-2">
-                  <Badge variant="secondary">Nothing :(</Badge>
+                  <Badge variant="secondary">Mention Linux</Badge>
+                  <Badge variant="secondary">Use Linux</Badge>
+                  <Badge variant="secondary">Mention Rust</Badge>
+                  <Badge variant="secondary">Use Rust</Badge>
+                  <Badge variant="secondary">Stare at my slow pc</Badge>
+                  <Badge variant="secondary">Wait for code to finish comp</Badge
+                  >
                 </div>
               </div>
             </div>

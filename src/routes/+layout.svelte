@@ -2,7 +2,7 @@
   import "./layout.css";
   import favicon from "$lib/assets/mochi.png";
   import { ModeWatcher } from "mode-watcher";
-  import LightRays from "$lib/components/magic/light-rays/light-rays.svelte";
+  // import LightRays from "$lib/components/magic/light-rays/light-rays.svelte";
   import ScrollProgress from "$lib/components/magic/scroll-progress/scroll-progress.svelte";
   import Meteors from "$lib/components/magic/meteors/meteors.svelte";
   import Navbar from "$lib/components/mochi/Navbar.svelte";
@@ -23,7 +23,7 @@
   class="min-h-screen flex flex-col relative overflow-hidden transition-colors duration-300"
 >
   <div class="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
-    <LightRays count={4} />
+<!--    <LightRays count={4} /> -->
     <Meteors number={20} />
   </div>
 

@@ -13,7 +13,7 @@ export const actions: Actions = {
         httpOnly: true,
         sameSite: "lax",
         maxAge: 60 * 60 * 24 * 7,
-        secure: false,
+        secure: true,
       });
       throw redirect(303, "/admin");
     }

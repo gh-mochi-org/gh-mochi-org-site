@@ -12,10 +12,8 @@
 >
   <div class="w-full flex items-center justify-between">
     <a href="/" class="flex items-center gap-0.5">
-      <enhanced:img src={mochi} alt="mochieee" class="w-12 h-12" />
-      <Button href="/" variant="link" class="font-bold hover:underline"
-        >~/.mochi</Button
-      >
+      <enhanced:img src={mochi} alt="Mochi" class="w-12 h-12" />
+      <span class="font-bold">~/.mochi</span>
     </a>
 
     <div class="hidden lg:flex items-center gap-4">
@@ -90,11 +88,17 @@
     <div
       class="lg:hidden border-t border-gray-600 backdrop-blur-sm p-4 flex flex-col gap-4 text-lg font-bold"
     >
-      <Button href="/" onclick={() => (isOpen = false)} variant="link" class="font-light hover:underline"
-        >HOME</Button
+      <Button
+        href="/"
+        onclick={() => (isOpen = false)}
+        variant="link"
+        class="font-light hover:underline">HOME</Button
       >
-      <Button href="/projects" onclick={() => (isOpen = false)} variant="link" class="font-light hover:underline"
-        >PROJECTS</Button
+      <Button
+        href="/projects"
+        onclick={() => (isOpen = false)}
+        variant="link"
+        class="font-light hover:underline">PROJECTS</Button
       >
       <Button
         href="/contributors"
@@ -102,11 +106,17 @@
         variant="link"
         class="font-light hover:underline">CONTRIBUTORS</Button
       >
-      <Button href="/news" onclick={() => (isOpen = false)} variant="link" class="font-light hover:underline"
-        >NEWS</Button
+      <Button
+        href="/news"
+        onclick={() => (isOpen = false)}
+        variant="link"
+        class="font-light hover:underline">NEWS</Button
       >
-      <Button href="/support" onclick={() => (isOpen = false)} variant="link" class="font-light hover:underline"
-        >SUPPORT</Button
+      <Button
+        href="/support"
+        onclick={() => (isOpen = false)}
+        variant="link"
+        class="font-light hover:underline">SUPPORT</Button
       >
 
       <div class="w-full flex items-center justify-center">

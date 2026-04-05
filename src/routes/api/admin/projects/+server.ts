@@ -3,6 +3,7 @@ import type { RequestHandler } from "./$types";
 import { db, projects } from "$lib/server/db";
 import { eq } from "drizzle-orm";
 import { sendDiscordNotification } from "$lib/server/discord";
+import { triggerWebhooks } from "$lib/server/webhooks";
 
 function guard(locals: App.Locals) {
   if (!locals.admin) throw redirect(303, "/admin/login");
@@ -43,6 +44,9 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     "project"
   );
 
+  // Trigger webhooks
+  void triggerWebhooks("project", "created", created);
+
   return json(created, { status: 201 });
 };
 
@@ -51,12 +55,26 @@ export const PUT: RequestHandler = async ({ request, locals }) => {
   const body = await request.json();
   const { id, ...rest } = body;
   const [updated] = await db.update(projects).set(rest).where(eq(projects.id, id)).returning();
+  
+  // Trigger webhooks
+  void triggerWebhooks("project", "updated", updated);
+  
   return json(updated);
 };
 
 export const DELETE: RequestHandler = async ({ request, locals }) => {
   guard(locals);
   const { id } = await request.json();
+  
+  // Get the project before deleting to pass to webhooks
+  const project = await db.select().from(projects).where(eq(projects.id, id)).limit(1);
+  
   await db.delete(projects).where(eq(projects.id, id));
+  
+  // Trigger webhooks
+  if (project.length > 0) {
+    void triggerWebhooks("project", "deleted", project[0]);
+  }
+  
   return json({ ok: true });
 };

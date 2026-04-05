@@ -64,3 +64,13 @@ export const contributors = pgTable("contributors", {
   avatar_url: varchar("avatar_url", { length: 500 }),
   created_at: timestamp("created_at").defaultNow().notNull(),
 });
+
+// Webhooks for external integrations
+export const webhooks = pgTable("webhooks", {
+  id: serial("id").primaryKey(),
+  url: varchar("url", { length: 500 }).notNull(),
+  event_type: varchar("event_type", { length: 50 }).notNull(), // 'news', 'project'
+  active: boolean("active").default(true).notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+});
